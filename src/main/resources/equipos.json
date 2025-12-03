@@ -1,0 +1,81 @@
+[
+{
+  "_id": {
+    "$oid": "6927386b34e9327d969dc29d"
+  },
+  "id": 1,
+  "nombre": "FC Barcelona",
+  "fundacion": 1899,
+  "titulos": 56,
+  "valorMercado": 700.5
+},
+{
+  "_id": {
+    "$oid": "6927386b34e9327d969dc29e"
+  },
+  "id": 2,
+  "nombre": "Real Madrid",
+  "fundacion": 1902,
+  "titulos": 50,
+  "valorMercado": 800
+},
+{
+  "_id": {
+    "$oid": "6927386b34e9327d969dc29f"
+  },
+  "id": 3,
+  "nombre": "Manchester United",
+  "fundacion": 1878,
+  "titulos": 23,
+  "valorMercado": 580.7
+},
+{
+  "_id": {
+    "$oid": "6927386b34e9327d969dc2a0"
+  },
+  "id": 4,
+  "nombre": "Bayern Munich",
+  "fundacion": 1900,
+  "titulos": 39,
+  "valorMercado": 750.6
+},
+{
+  "_id": {
+    "$oid": "6927386b34e9327d969dc2a1"
+  },
+  "id": 5,
+  "nombre": "Juventus",
+  "fundacion": 1897,
+  "titulos": 38,
+  "valorMercado": 400.1
+},
+{
+  "_id": {
+    "$oid": "6927386b34e9327d969dc2a2"
+  },
+  "id": 6,
+  "nombre": "Liverpool",
+  "fundacion": 1892,
+  "titulos": 25,
+  "valorMercado": 540.12
+},
+{
+  "_id": {
+    "$oid": "6927386b34e9327d969dc2a3"
+  },
+  "id": 7,
+  "nombre": "AC Milan",
+  "fundacion": 1899,
+  "titulos": 25,
+  "valorMercado": 220.23
+},
+{
+  "_id": {
+    "$oid": "6927386b34e9327d969dc2a4"
+  },
+  "id": 8,
+  "nombre": "Chelsea",
+  "fundacion": 1905,
+  "titulos": 8,
+  "valorMercado": 480.67
+}]

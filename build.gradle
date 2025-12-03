@@ -12,7 +12,10 @@ repositories {
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     implementation("org.mongodb:mongodb-driver-sync:4.11.0")
-    implementation("org.slf4j:slf4j-nop:2.0.9")
+    //implementation("org.slf4j:slf4j-nop:2.0.9")
+    implementation("org.slf4j:slf4j-nop:2.0.12")
+    implementation("org.json:json:20231013")
+    implementation("de.bwaldvogel:mongo-java-server:1.45.0")
 }
 
 test {
