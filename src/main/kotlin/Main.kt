@@ -23,9 +23,12 @@ lateinit var servidor: MongoServer
 lateinit var cliente: MongoClient
 lateinit var uri: String
 lateinit var coleccionEquipos: MongoCollection<Document>
+lateinit var coleccionJugadores: MongoCollection<Document>
+
 
 const val NOM_BD = "clubes"
-const val NOM_COLECCION = "equipos"
+const val NOM_COLECCION1 = "equipos"
+const val NOM_COLECCION2 = "jugadores"
 
 val scanner = Scanner(System.`in`)
 
@@ -37,17 +40,75 @@ data class Equipo(
     val valorMercado: Double
 )
 
+data class Jugador(
+    val id: Int,
+    val nombre: String,
+    val fecha_nacimiento: String,
+    val posicion: String,
+    val id_equipo: Int
+)
+
 fun main() {
     conectarBD()
     importarBD("src/main/resources/equipos.json", coleccionEquipos)
+    importarBD("src/main/resources/jugadores.json", coleccionJugadores)
     do {
-        menuMostar(listOf("Listar equipos", "Obtener equipo por ID", "Equipos con mas titulos que","Insertar equipo", "Actualizar equipo", "Nombre y titulos de los equipos", "Media de titulos","Eliminar equipo", "Exportar a JSON","Salir"))
+        menuMostar(listOf("Equipos", "Jugadores", "Salir"))
+        println("Introduce una opcion")
+        val option = readln()
+        when (option) {
+            "1" -> crudEquipo()
+            "2" -> crudJugador()
+        }
+    } while (option != "3")
+}
+
+fun conectarBD() {
+    servidor = MongoServer(MemoryBackend())
+    val address = servidor.bind()
+    uri = "mongodb://${address.hostName}:${address.port}"
+
+    cliente = MongoClients.create(uri)
+    coleccionEquipos = cliente.getDatabase(NOM_BD).getCollection(NOM_COLECCION1)
+    coleccionJugadores = cliente.getDatabase(NOM_BD).getCollection(NOM_COLECCION2)
+
+
+    println("Servidor MongoDB en memoria iniciado en $uri")
+}
+
+fun desconectarBD() {
+    cliente.close()
+    servidor.shutdown()
+    println("Servidor MongoDB en memoria finalizado")
+}
+
+
+//EQUIPO
+//TODO incluir id liga
+fun crudEquipo() {
+    do {
+        menuMostar(
+            listOf(
+                "Listar equipos",
+                "Obtener equipo por ID",
+                "Equipos con mas titulos que",
+                "Insertar equipo",
+                "Actualizar equipo",
+                "Nombre y titulos de los equipos",
+                "Media de titulos",
+                "Eliminar equipo",
+                "Exportar a JSON",
+                "Importar",
+                "Salir"
+            )
+        )
         println("Introduce una opcion")
         val option = readln()
         when (option) {
             "1" -> {
                 getEquipos()
             }
+
             "2" -> {
                 val id = leerEntero("Introduce el ID del equipo")
                 val equipo = getEquipoPorId(id)
@@ -58,6 +119,7 @@ fun main() {
                     println("Equipo con ID $id no encontrado")
                 }
             }
+
             "3" -> {
                 val cant = leerEntero("Introduce la cantidad de titulos")
                 val equipos = getEquiposConMasTitulos(cant)
@@ -70,8 +132,9 @@ fun main() {
                     println("No se han encontrado equipos con una mayor cantidad de titulos que la especificada")
                 }
             }
+
             "4" -> {
-                val id = leerEntero("Introduce el id del quipo a modificar:")
+                val id = leerEntero("Introduce el id del equipo a insertar:")
                 val equipoExistente = getEquipoPorId(id)
 
                 if (equipoExistente == null) {
@@ -86,6 +149,7 @@ fun main() {
                     println("Ya existe un equipo con ese ID")
                 }
             }
+
             "5" -> {
                 val id = leerEntero("Introduce el id del quipo a modificar:")
                 val equipoExistente = getEquipoPorId(id)
@@ -104,21 +168,25 @@ fun main() {
                                 val equipoCopia = equipoExistente.copy(nombre = nombre)
                                 actualizarEquipo(equipoCopia)
                             }
+
                             "2" -> {
                                 val fundacion = leerEntero("Introduce un nuevo año de fundacion:")
                                 val equipoCopia = equipoExistente.copy(fundacion = fundacion)
                                 actualizarEquipo(equipoCopia)
                             }
+
                             "3" -> {
                                 val titulos = leerEntero("Introduce una nueva cantidad de titulos:")
                                 val equipoCopia = equipoExistente.copy(titulos = titulos)
                                 actualizarEquipo(equipoCopia)
                             }
+
                             "4" -> {
                                 val valorMercado = leerDouble("Introduce un nuevo valor de mercado:")
                                 val equipoCopia = equipoExistente.copy(valorMercado = valorMercado)
                                 actualizarEquipo(equipoCopia)
                             }
+
                             "5" -> println("Saliendo...")
                             else -> println("Opcion no valida")
                         }
@@ -129,6 +197,7 @@ fun main() {
                     println("El equipo con ese ID no existe")
                 }
             }
+
             "6" -> {
                 getNombresTitulos().forEach {
                     val nombre = it.first
@@ -137,39 +206,26 @@ fun main() {
                     println("Equipo: $nombre - Títulos: $titulos")
                 }
             }
+
             "7" -> {
                 println("La media de titulos es: ${calcularMediaTitulos()}")
             }
+
             "8" -> eliminarEquipo()
             "9" -> {
                 exportarBD(coleccionEquipos, "src/main/resources/equipos.json")
             }
+
             "10" -> {
                 importarBD("src/main/resources/equipos.json", coleccionEquipos)
             }
+
             "11" -> {
                 println("Saliendo...")
                 desconectarBD()
             }
         }
     } while (option != "11")
-}
-
-fun conectarBD() {
-    servidor = MongoServer(MemoryBackend())
-    val address = servidor.bind()
-    uri = "mongodb://${address.hostName}:${address.port}"
-
-    cliente = MongoClients.create(uri)
-    coleccionEquipos = cliente.getDatabase(NOM_BD).getCollection(NOM_COLECCION)
-
-    println("Servidor MongoDB en memoria iniciado en $uri")
-}
-
-fun desconectarBD() {
-    cliente.close()
-    servidor.shutdown()
-    println("Servidor MongoDB en memoria finalizado")
 }
 
 fun getEquipos() {
@@ -193,18 +249,19 @@ fun insertarEquipo(equipo: Equipo) {
     coleccionEquipos.insertOne(doc)
     println("Equipo insertado con ID: ${doc.getObjectId("_id")}")
 
-    cliente.close()
+    //cliente.close()
     println("Conexión cerrada")
 }
 
 fun actualizarEquipo(equipo: Equipo) {
     val filtro = Filters.eq("id", equipo.id)
 
-    val actualizacion = Document("\$set", Document()
-        .append("nombre", equipo.nombre)
-        .append("fundacion", equipo.fundacion)
-        .append("titulos", equipo.titulos)
-        .append("valorMercado", equipo.valorMercado)
+    val actualizacion = Document(
+        "\$set", Document()
+            .append("nombre", equipo.nombre)
+            .append("fundacion", equipo.fundacion)
+            .append("titulos", equipo.titulos)
+            .append("valorMercado", equipo.valorMercado)
     )
 
     val result = coleccionEquipos.updateOne(filtro, actualizacion)
@@ -215,8 +272,8 @@ fun actualizarEquipo(equipo: Equipo) {
         println("No se modificó el equipo con ID ${equipo.id}. Puede que el ID no exista o los datos fueran los mismos.")
     }
 
-    cliente.close()
-    println("Conexión cerrada.")
+    //cliente.close()
+    //println("Conexión cerrada.")
 }
 
 fun eliminarEquipo() {
@@ -236,8 +293,8 @@ fun eliminarEquipo() {
     else
         println("No se encontró ningun equipo con ese nombre.")
 
-    cliente.close()
-    println("Conexión cerrada.")
+    //cliente.close()
+    //println("Conexión cerrada.")
 }
 
 fun getEquipoPorId(idEquipo: Int): Equipo? {
@@ -246,7 +303,7 @@ fun getEquipoPorId(idEquipo: Int): Equipo? {
 
     val doc = coleccionEquipos.find(filtro).first()
 
-    cliente.close()
+    //cliente.close()
 
     return if (doc != null) {
         val id = doc.getInteger("id")
@@ -283,7 +340,7 @@ fun getEquiposConMasTitulos(minimoTitulos: Int): List<Equipo> {
         }
     }
 
-    cliente.close()
+    //cliente.close()
     return equipos
 }
 
@@ -304,13 +361,14 @@ fun getNombresTitulos(): List<Pair<String, Int>> {
         }
     }
 
-    cliente.close()
+    //cliente.close()
     return resultados
 }
 
 fun calcularMediaTitulos(): Double {
     val pipeline = listOf(
-        Document("\$group",
+        Document(
+            "\$group",
             Document("_id", null)
                 .append("titulosMedia", Document("\$avg", "\$titulos"))
         )
@@ -318,7 +376,7 @@ fun calcularMediaTitulos(): Double {
 
     val resultado = coleccionEquipos.aggregate(pipeline).first()
 
-    cliente.close()
+    //cliente.close()
 
     return if (resultado != null) {
         resultado.getDouble("titulosMedia") ?: 0.0
@@ -327,6 +385,146 @@ fun calcularMediaTitulos(): Double {
     }
 }
 
+
+//JUGADOR
+fun crudJugador() {
+    do {
+        menuMostar(
+            listOf(
+                "Listar jugadores",
+                "Obtener jugador por ID",
+                "Insertar jugador",
+                "Actualizar jugador",
+                "Eliminar jugador",
+                "Exportar a JSON",
+                "Importar",
+                "Salir"
+            )
+        )
+        println("Introduce una opcion")
+        val option = readln()
+        when (option) {
+            "1" -> getJugadores()
+            "2" -> {
+                val id = leerEntero("Introduce el ID del jugador")
+                val jugador = getJugadorPorId(id)
+
+                if (jugador != null) {
+                    println("Equipo encontrado: ID: ${jugador.id} - nombre: ${jugador.nombre} - fecha nacimiento: ${jugador.fecha_nacimiento} - posicion: ${jugador.posicion} - ID equipo: ${jugador.id_equipo}")
+                } else {
+                    println("Jugador con ID $id no encontrado")
+                }
+            }
+            "3" -> {
+                val id = leerEntero("Introduce el id del jugador a modificar:")
+                val jugadorExistente = getJugadorPorId(id)
+
+                if (jugadorExistente != null) {
+                    println("Jugador encontrado: ID: ${jugadorExistente.id} - Nombre: ${jugadorExistente.nombre} - Fecha nacimiento: ${jugadorExistente.fecha_nacimiento} - Posicion: ${jugadorExistente.posicion} - ID equipo: ${jugadorExistente.id_equipo}")
+
+                    do {
+                        menuMostar(listOf("Nombre", "Fecha nacimiento", "Posicion", "ID equipo", "Salir"))
+                        println("Selecciona una opcion:")
+                        val optionUpdate = readln()
+
+                        when (optionUpdate) {
+                            "1" -> {
+                                val nombre = leerCadena("Introduce un nuevo nombre:")
+                                val jugadorCopia = jugadorExistente.copy(nombre = nombre)
+                                actualizarJugador(jugadorCopia)
+                            }
+
+                            "2" -> {
+                                val fechaNacimiento = leerCadena("Introduce una nueva fecha de nacimiento:")
+                                val jugadorCopia = jugadorExistente.copy(fecha_nacimiento = fechaNacimiento)
+                                actualizarJugador(jugadorCopia)
+                            }
+
+                            "3" -> {
+                                val posicion = leerCadena("Introduce una nueva posicion:")
+                                val jugadorCopia = jugadorExistente.copy(posicion = posicion)
+                                actualizarJugador(jugadorCopia)
+                            }
+
+                            "4" -> {
+                                /*val idEquipo = leerEntero("Introduce un nuevo valor de mercado:")
+
+                                val equipoCopia = equipoExistente.copy(valorMercado = valorMercado)
+                                actualizarEquipo(equipoCopia)*/
+                            }
+
+                            "5" -> println("Saliendo...")
+                            else -> println("Opcion no valida")
+                        }
+                    } while (optionUpdate != "5")
+
+
+                } else {
+                    println("El equipo con ese ID no existe")
+                }
+            }
+        }
+
+    } while (option != "") //TODO
+}
+
+fun getJugadores() {
+    coleccionJugadores.find().forEach { doc ->
+        val id = doc.getInteger("id_jugador")
+        val nombre = doc.getString("nombre")
+        val fecha_nacimiento = doc.getString("fecha_nacimiento")
+        val posicion = doc.getString("posicion")
+        val id_equipo = doc.getInteger("id_equipo")
+        println("id: ${id} - nombre: ${nombre} - fecha nacimiento: ${fecha_nacimiento} - posicion: ${posicion} - ID equipo: ${id_equipo}")
+    }
+}
+
+fun getJugadorPorId(idJugador: Int): Jugador? {
+
+    val filtro = Filters.eq("id_jugador", idJugador)
+
+    val doc = coleccionJugadores.find(filtro).first()
+
+    //cliente.close()
+
+    return if (doc != null) {
+        val id = doc.getInteger("id_jugador")
+        val nombre = doc.getString("nombre")
+        val fecha_nacimiento = doc.getString("fecha_nacimiento")
+        val posicion = doc.getString("posicion")
+        val id_equipo = doc.getInteger("id_equipo")
+
+        Jugador(id, nombre, fecha_nacimiento, posicion, id_equipo)
+    } else {
+        null
+    }
+}
+
+fun actualizarJugador(jugador: Jugador) {
+    val filtro = Filters.eq("id", jugador.id)
+
+    val actualizacion = Document(
+        "\$set", Document()
+            .append("nombre", jugador.nombre)
+            .append("fecha_nacimiento", jugador.fecha_nacimiento)
+            .append("posicion", jugador.posicion)
+            .append("id_equipo", jugador.id_equipo)
+    )
+
+    val result = coleccionJugadores.updateOne(filtro, actualizacion)
+
+    if (result.modifiedCount > 0) {
+        println("Jugador con ID ${jugador.id} actualizado correctamente (${result.modifiedCount} documento modificado).")
+    } else {
+        println("No se modificó el jugador con ID ${jugador.id}. Puede que el ID no exista o los datos fueran los mismos.")
+    }
+
+    //cliente.close()
+    //println("Conexión cerrada.")
+}
+
+
+//BD
 fun exportarBD(coleccion: MongoCollection<Document>, rutaJSON: String) {
     val settings = JsonWriterSettings.builder().indent(true).build()
     val file = File(rutaJSON)
@@ -386,7 +584,7 @@ fun importarBD(rutaJSON: String, coleccion: MongoCollection<Document>) {
 
     val db = cliente.getDatabase(NOM_BD)
 
-    val nombreColeccion =coleccion.namespace.collectionName
+    val nombreColeccion = coleccion.namespace.collectionName
 
     // Borrar colección si existe
     if (db.listCollectionNames().contains(nombreColeccion)) {
@@ -403,12 +601,16 @@ fun importarBD(rutaJSON: String, coleccion: MongoCollection<Document>) {
     }
 }
 
+
+//MENU
 fun menuMostar(options: List<String>) {
     options.forEachIndexed { index, option ->
         println("${index + 1}. $option")
     }
 }
 
+
+//VALIDACION INPUTS
 fun leerEntero(mensaje: String): Int {
 
     while (true) {
@@ -446,7 +648,7 @@ fun leerCadena(mensaje: String): String {
 
 fun leerDouble(mensaje: String): Double {
 
-    while(true) {
+    while (true) {
 
         println(mensaje)
 

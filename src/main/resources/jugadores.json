@@ -1,0 +1,170 @@
+[
+  {
+    "id_jugador": 1,
+    "nombre": "Lamine Yamal",
+    "fecha_nacimiento": "2007-07-13",
+    "posicion": "Delantero",
+    "id_equipo": 1
+  },
+  {
+    "id_jugador": 2,
+    "nombre": "Pedri González",
+    "fecha_nacimiento": "2002-11-25",
+    "posicion": "Centrocampista",
+    "id_equipo": 1
+  },
+  {
+    "id_jugador": 3,
+    "nombre": "Raphinha",
+    "fecha_nacimiento": "1996-12-14",
+    "posicion": "Extremo",
+    "id_equipo": 1
+  },
+  {
+    "id_jugador": 4,
+    "nombre": "Kylian Mbappé",
+    "fecha_nacimiento": "1998-12-20",
+    "posicion": "Delantero",
+    "id_equipo": 2
+  },
+  {
+    "id_jugador": 5,
+    "nombre": "Jude Bellingham",
+    "fecha_nacimiento": "2003-06-29",
+    "posicion": "Centrocampista",
+    "id_equipo": 2
+  },
+  {
+    "id_jugador": 6,
+    "nombre": "Vinícius Júnior",
+    "fecha_nacimiento": "2000-07-12",
+    "posicion": "Extremo",
+    "id_equipo": 2
+  },
+  {
+    "id_jugador": 7,
+    "nombre": "Bruno Fernandes",
+    "fecha_nacimiento": "1994-09-08",
+    "posicion": "Centrocampista",
+    "id_equipo": 3
+  },
+  {
+    "id_jugador": 8,
+    "nombre": "Matheus Cunha",
+    "fecha_nacimiento": "1999-05-27",
+    "posicion": "Delantero",
+    "id_equipo": 3
+  },
+  {
+    "id_jugador": 9,
+    "nombre": "Bryan Mbeumo",
+    "fecha_nacimiento": "1999-08-07",
+    "posicion": "Extremo",
+    "id_equipo": 3
+  },
+  {
+    "id_jugador": 10,
+    "nombre": "Harry Kane",
+    "fecha_nacimiento": "1993-07-28",
+    "posicion": "Delantero",
+    "id_equipo": 4
+  },
+  {
+    "id_jugador": 11,
+    "nombre": "Joshua Kimmich",
+    "fecha_nacimiento": "1995-02-08",
+    "posicion": "Centrocampista",
+    "id_equipo": 4
+  },
+  {
+    "id_jugador": 12,
+    "nombre": "Serge Gnabry",
+    "fecha_nacimiento": "1995-07-14",
+    "posicion": "Extremo",
+    "id_equipo": 4
+  },
+  {
+    "id_jugador": 13,
+    "nombre": "Dusan Vlahovic",
+    "fecha_nacimiento": "2000-01-28",
+    "posicion": "Delantero",
+    "id_equipo": 5
+  },
+  {
+    "id_jugador": 14,
+    "nombre": "Kenan Yıldız",
+    "fecha_nacimiento": "2005-05-04",
+    "posicion": "Extremo",
+    "id_equipo": 5
+  },
+  {
+    "id_jugador": 15,
+    "nombre": "Bremer",
+    "fecha_nacimiento": "1997-03-18",
+    "posicion": "Defensa",
+    "id_equipo": 5
+  },
+  {
+    "id_jugador": 16,
+    "nombre": "Mohamed Salah",
+    "fecha_nacimiento": "1992-06-15",
+    "posicion": "Delantero",
+    "id_equipo": 6
+  },
+  {
+    "id_jugador": 18,
+    "nombre": "Alisson Becker",
+    "fecha_nacimiento": "1992-10-02",
+    "posicion": "Portero",
+    "id_equipo": 6
+  },
+  {
+    "id_jugador": 19,
+    "nombre": "Virgil van Dijk",
+    "fecha_nacimiento": "1991-07-08",
+    "posicion": "Defensa",
+    "id_equipo": 6
+  },
+  {
+    "id_jugador": 20,
+    "nombre": "Christian Pulisic",
+    "fecha_nacimiento": "1998-09-18",
+    "posicion": "Extremo",
+    "id_equipo": 7
+  },
+  {
+    "id_jugador": 21,
+    "nombre": "Rafael Leão",
+    "fecha_nacimiento": "1999-06-10",
+    "posicion": "Delantero",
+    "id_equipo": 7
+  },
+  {
+    "id_jugador": 22,
+    "nombre": "Luka Modrić",
+    "fecha_nacimiento": "1985-09-09",
+    "posicion": "Centrocampista",
+    "id_equipo": 7
+  },
+  {
+    "id_jugador": 23,
+    "nombre": "Enzo Fernández",
+    "fecha_nacimiento": "2001-01-17",
+    "posicion": "Centrocampista",
+    "id_equipo": 8
+  },
+  {
+    "id_jugador": 24,
+    "nombre": "Raheem Sterling",
+    "fecha_nacimiento": "1994-12-08",
+    "posicion": "Extremo",
+    "id_equipo": 8
+  },
+  {
+    "id_jugador": 25,
+    "nombre": "Moisés Caicedo",
+    "fecha_nacimiento": "2002-11-02",
+    "posicion": "Centrocampista",
+    "id_equipo": 8
+  }
+]

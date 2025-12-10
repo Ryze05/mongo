@@ -1,81 +1,89 @@
 [
 {
   "_id": {
-    "$oid": "6927386b34e9327d969dc29d"
+    "$oid": "6939a2336c6da9532161a5b1"
   },
+  "titulos": 56,
+  "fundacion": 1899,
+  "valorMercado": 700.5,
   "id": 1,
   "nombre": "FC Barcelona",
-  "fundacion": 1899,
-  "titulos": 56,
-  "valorMercado": 700.5
+  "id_liga": 1
 },
 {
   "_id": {
-    "$oid": "6927386b34e9327d969dc29e"
+    "$oid": "6939a2336c6da9532161a5b2"
   },
+  "titulos": 50,
+  "fundacion": 1902,
+  "valorMercado": 800,
   "id": 2,
   "nombre": "Real Madrid",
-  "fundacion": 1902,
-  "titulos": 50,
-  "valorMercado": 800
+  "id_liga": 1
 },
 {
   "_id": {
-    "$oid": "6927386b34e9327d969dc29f"
+    "$oid": "6939a2336c6da9532161a5b3"
   },
+  "titulos": 23,
+  "fundacion": 1878,
+  "valorMercado": 580.7,
   "id": 3,
   "nombre": "Manchester United",
-  "fundacion": 1878,
-  "titulos": 23,
-  "valorMercado": 580.7
+  "id_liga": 2
 },
 {
   "_id": {
-    "$oid": "6927386b34e9327d969dc2a0"
+    "$oid": "6939a2336c6da9532161a5b4"
   },
+  "titulos": 39,
+  "fundacion": 1900,
+  "valorMercado": 750.6,
   "id": 4,
   "nombre": "Bayern Munich",
-  "fundacion": 1900,
-  "titulos": 39,
-  "valorMercado": 750.6
+  "id_liga": 3
 },
 {
   "_id": {
-    "$oid": "6927386b34e9327d969dc2a1"
+    "$oid": "6939a2336c6da9532161a5b5"
   },
+  "titulos": 38,
+  "fundacion": 1897,
+  "valorMercado": 400.1,
   "id": 5,
   "nombre": "Juventus",
-  "fundacion": 1897,
-  "titulos": 38,
-  "valorMercado": 400.1
+  "id_liga": 4
 },
 {
   "_id": {
-    "$oid": "6927386b34e9327d969dc2a2"
+    "$oid": "6939a2336c6da9532161a5b6"
   },
+  "titulos": 25,
+  "fundacion": 1892,
+  "valorMercado": 540.12,
   "id": 6,
   "nombre": "Liverpool",
-  "fundacion": 1892,
-  "titulos": 25,
-  "valorMercado": 540.12
+  "id_liga": 2
 },
 {
   "_id": {
-    "$oid": "6927386b34e9327d969dc2a3"
+    "$oid": "6939a2336c6da9532161a5b7"
   },
+  "titulos": 25,
+  "fundacion": 1899,
+  "valorMercado": 220.23,
   "id": 7,
   "nombre": "AC Milan",
-  "fundacion": 1899,
-  "titulos": 25,
-  "valorMercado": 220.23
+  "id_liga": 4
 },
 {
   "_id": {
-    "$oid": "6927386b34e9327d969dc2a4"
+    "$oid": "6939a2336c6da9532161a5b8"
   },
+  "titulos": 8,
+  "fundacion": 1905,
+  "valorMercado": 480.67,
   "id": 8,
   "nombre": "Chelsea",
-  "fundacion": 1905,
-  "titulos": 8,
-  "valorMercado": 480.67
+  "id_liga": 2
 }]
