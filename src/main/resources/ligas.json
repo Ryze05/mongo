@@ -1,24 +1,24 @@
 [
   {
-    "id": 1,
+    "id_liga": 1,
     "nombre": "Liga Española",
     "pais": "España",
     "division": "Primera División"
   },
   {
-    "id": 2,
+    "id_liga": 2,
     "nombre": "Liga Inglesa",
     "pais": "Inglaterra",
     "division": "Premier League"
   },
   {
-    "id": 3,
+    "id_liga": 3,
     "nombre": "Liga Alemana",
     "pais": "Alemania",
     "division": "Bundesliga"
   },
   {
-    "id": 4,
+    "id_liga": 4,
     "nombre": "Liga Italiana",
     "pais": "Italia",
     "division": "Serie A"

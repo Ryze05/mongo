@@ -24,11 +24,13 @@ lateinit var cliente: MongoClient
 lateinit var uri: String
 lateinit var coleccionEquipos: MongoCollection<Document>
 lateinit var coleccionJugadores: MongoCollection<Document>
+lateinit var coleccionLigas: MongoCollection<Document>
 
 
 const val NOM_BD = "clubes"
 const val NOM_COLECCION1 = "equipos"
 const val NOM_COLECCION2 = "jugadores"
+const val NOM_COLECCION3 = "ligas"
 
 val scanner = Scanner(System.`in`)
 
@@ -48,19 +50,33 @@ data class Jugador(
     val id_equipo: Int
 )
 
+data class Liga(
+    val id: Int,
+    val nombre: String,
+    val pais: String,
+    val division: String
+)
+
 fun main() {
     conectarBD()
     importarBD("src/main/resources/equipos.json", coleccionEquipos)
     importarBD("src/main/resources/jugadores.json", coleccionJugadores)
+    importarBD("src/main/resources/ligas.json", coleccionLigas)
+
     do {
-        menuMostar(listOf("Equipos", "Jugadores", "Salir"))
-        println("Introduce una opcion")
+        menuMostar(listOf("Ligas", "Equipos", "Jugadores", "Salir"))
+        println("Introduce una opcion:")
         val option = readln()
         when (option) {
-            "1" -> crudEquipo()
-            "2" -> crudJugador()
+            "1" -> crudLiga()
+            "2" -> crudEquipo()
+            "3" -> crudJugador()
+            "4" -> {
+                println("Saliendo...")
+                desconectarBD()
+            }
         }
-    } while (option != "3")
+    } while (option != "4")
 }
 
 fun conectarBD() {
@@ -71,6 +87,7 @@ fun conectarBD() {
     cliente = MongoClients.create(uri)
     coleccionEquipos = cliente.getDatabase(NOM_BD).getCollection(NOM_COLECCION1)
     coleccionJugadores = cliente.getDatabase(NOM_BD).getCollection(NOM_COLECCION2)
+    coleccionLigas = cliente.getDatabase(NOM_BD).getCollection(NOM_COLECCION3)
 
 
     println("Servidor MongoDB en memoria iniciado en $uri")
@@ -222,7 +239,7 @@ fun crudEquipo() {
 
             "11" -> {
                 println("Saliendo...")
-                desconectarBD()
+                //desconectarBD()
             }
         }
     } while (option != "11")
@@ -385,7 +402,6 @@ fun calcularMediaTitulos(): Double {
     }
 }
 
-
 //JUGADOR
 fun crudJugador() {
     do {
@@ -396,8 +412,6 @@ fun crudJugador() {
                 "Insertar jugador",
                 "Actualizar jugador",
                 "Eliminar jugador",
-                "Exportar a JSON",
-                "Importar",
                 "Salir"
             )
         )
@@ -416,6 +430,29 @@ fun crudJugador() {
                 }
             }
             "3" -> {
+                val id = leerEntero("Introduce el id del jugador a insertar:")
+                val jugadorExistente = getJugadorPorId(id)
+
+                if (jugadorExistente == null) {
+                    val nombre = leerCadena("Introduce un nombre:")
+                    val fecha_nacimiento = leerCadena("Introduce una fecha de nacimiento:")
+                    val posicion = leerCadena("Introduce una posicion:")
+                    val id_equipo = leerEntero("Introduce un ID de equipo:")
+
+                    val equipo = getEquipoPorId(id_equipo)
+
+                    if (equipo != null) {
+                        val jugador = Jugador(id, nombre, fecha_nacimiento, posicion, id_equipo)
+                        insertarJugador(jugador)
+                    } else {
+                        println("No se ha encontrado un equipo con ese ID")
+                    }
+
+                } else {
+                    println("Ya existe un jugador con ese ID")
+                }
+            }
+            "4" -> {
                 val id = leerEntero("Introduce el id del jugador a modificar:")
                 val jugadorExistente = getJugadorPorId(id)
 
@@ -447,10 +484,15 @@ fun crudJugador() {
                             }
 
                             "4" -> {
-                                /*val idEquipo = leerEntero("Introduce un nuevo valor de mercado:")
+                                val idEquipo = leerEntero("Introduce el nuevo ID de equipo:")
+                                val equipo = getEquipoPorId(idEquipo)
 
-                                val equipoCopia = equipoExistente.copy(valorMercado = valorMercado)
-                                actualizarEquipo(equipoCopia)*/
+                                if (equipo != null) {
+                                    val jugadorCopia = jugadorExistente.copy(id_equipo = idEquipo)
+                                    actualizarJugador(jugadorCopia)
+                                } else {
+                                    println("No se ha encontrado un equipo con ese ID")
+                                }
                             }
 
                             "5" -> println("Saliendo...")
@@ -463,9 +505,11 @@ fun crudJugador() {
                     println("El equipo con ese ID no existe")
                 }
             }
+            "5" -> eliminarJugador()
+            "6" -> println("Saliendo...")
         }
 
-    } while (option != "") //TODO
+    } while (option != "6") //TODO
 }
 
 fun getJugadores() {
@@ -501,7 +545,7 @@ fun getJugadorPorId(idJugador: Int): Jugador? {
 }
 
 fun actualizarJugador(jugador: Jugador) {
-    val filtro = Filters.eq("id", jugador.id)
+    val filtro = Filters.eq("id_jugador", jugador.id)
 
     val actualizacion = Document(
         "\$set", Document()
@@ -523,6 +567,217 @@ fun actualizarJugador(jugador: Jugador) {
     //println("Conexión cerrada.")
 }
 
+fun insertarJugador(jugador: Jugador) {
+    val doc = Document("id_jugador", jugador.id)
+        .append("nombre", jugador.nombre)
+        .append("fecha_nacimiento", jugador.fecha_nacimiento)
+        .append("posicion", jugador.posicion)
+        .append("id_equipo", jugador.id_equipo)
+
+    coleccionJugadores.insertOne(doc)
+    println("Jugador insertado con ID: ${doc.getObjectId("_id")}")
+
+    //cliente.close()
+    println("Conexión cerrada")
+}
+
+fun eliminarJugador() {
+    var id: Int? = null
+    while (id == null) {
+        print("ID del jugador a eliminar: ")
+        val entrada = scanner.nextLine()
+        id = entrada.toIntOrNull()
+        if (id == null) {
+            println("El ID debe ser un número !!!")
+        }
+    }
+
+    val result = coleccionEquipos.deleteOne(Filters.eq("id_jugador", id))
+    if (result.deletedCount > 0)
+        println("Jugador eliminado correctamente.")
+    else
+        println("No se encontró ningun jugador con ese nombre.")
+
+    //cliente.close()
+    //println("Conexión cerrada.")
+}
+
+//LIGA
+fun crudLiga() {
+    do {
+        menuMostar(
+            listOf(
+                "Listar ligas",
+                "Obtener liga por ID",
+                "Insertar liga",
+                "Actualizar liga",
+                "Eliminar liga",
+                "Salir"
+            )
+        )
+        println("Introduce una opcion")
+        val option = readln()
+        when (option) {
+            "1" -> getLigas()
+            "2" -> {
+                val id = leerEntero("Introduce el ID de la liga")
+                val liga = getLigaPorId(id)
+
+                if (liga != null) {
+                    println("Liga encontrada: ID: ${liga.id} - nombre: ${liga.nombre} - Pais: ${liga.pais} - Division: ${liga.division}")
+                } else {
+                    println("Liga con ID $id no encontrada")
+                }
+            }
+            "3" -> {
+                val id = leerEntero("Introduce el id de la liga a insertar:")
+                val ligaExistente = getLigaPorId(id)
+
+                if (ligaExistente == null) {
+                    val nombre = leerCadena("Introduce un nombre:")
+                    val pais = leerCadena("Introduce un pais:")
+                    val division = leerCadena("Introduce una division:")
+
+                    val liga = Liga(id, nombre, pais, division)
+                    insertarLiga(liga)
+
+                } else {
+                    println("Ya existe una liga con ese ID")
+                }
+            }
+            "4" -> {
+                val id = leerEntero("Introduce el id de la liga a modificar:")
+                val ligaExistente = getLigaPorId(id)
+
+                if (ligaExistente != null) {
+                    println("Liga encontrada: ID: ${ligaExistente.id} - Nombre: ${ligaExistente.nombre} - Pais: ${ligaExistente.pais} - Division: ${ligaExistente.division}")
+
+                    do {
+                        menuMostar(listOf("Nombre", "Pais", "Division", "Salir"))
+                        println("Selecciona una opcion:")
+                        val optionUpdate = readln()
+
+                        when (optionUpdate) {
+                            "1" -> {
+                                val nombre = leerCadena("Introduce un nuevo nombre:")
+                                val ligaCopia = ligaExistente.copy(nombre = nombre)
+                                actualizarLiga(ligaCopia)
+                            }
+
+                            "2" -> {
+                                val pais = leerCadena("Introduce un nuevo pais:")
+                                val ligaCopia = ligaExistente.copy(pais = pais)
+                                actualizarLiga(ligaCopia)
+                            }
+
+                            "3" -> {
+                                val division = leerCadena("Introduce una nueva division:")
+                                val ligaCopia = ligaExistente.copy(division = division)
+                                actualizarLiga(ligaCopia)
+                            }
+
+                            "4" -> println("Saliendo...")
+                            else -> println("Opcion no valida")
+                        }
+                    } while (optionUpdate != "4")
+
+
+                } else {
+                    println("El equipo con ese ID no existe")
+                }
+            }
+            "5" -> eliminarLiga()
+            "6" -> println("Saliendo...")
+        }
+
+    } while (option != "6") //TODO
+}
+
+fun getLigas() {
+    coleccionLigas.find().forEach { doc ->
+        val id = doc.getInteger("id_liga")
+        val nombre = doc.getString("nombre")
+        val pais = doc.getString("pais")
+        val division = doc.getString("division")
+        println("id: ${id} - nombre: ${nombre} - pais: ${pais} - division: ${division}")
+    }
+}
+
+fun getLigaPorId(idLiga: Int): Liga? {
+
+    val filtro = Filters.eq("id_liga", idLiga)
+
+    val doc = coleccionLigas.find(filtro).first()
+
+    //cliente.close()
+
+    return if (doc != null) {
+        val id = doc.getInteger("id_liga")
+        val nombre = doc.getString("nombre")
+        val pais = doc.getString("pais")
+        val division = doc.getString("division")
+
+        Liga(id, nombre, pais, division)
+    } else {
+        null
+    }
+}
+
+fun insertarLiga(liga: Liga) {
+    val doc = Document("id_liga", liga.id)
+        .append("nombre", liga.nombre)
+        .append("pais", liga.pais)
+        .append("division", liga.division)
+
+    coleccionLigas.insertOne(doc)
+    println("Liga insertada con ID: ${doc.getObjectId("_id")}")
+
+    //cliente.close()
+    println("Conexión cerrada")
+}
+
+fun actualizarLiga(liga: Liga) {
+    val filtro = Filters.eq("id_liga", liga.id)
+
+    val actualizacion = Document(
+        "\$set", Document()
+            .append("nombre", liga.nombre)
+            .append("pais", liga.pais)
+            .append("division", liga.division)
+    )
+
+    val result = coleccionLigas.updateOne(filtro, actualizacion)
+
+    if (result.modifiedCount > 0) {
+        println("Liga con ID ${liga.id} actualiza correctamente (${result.modifiedCount} documento modificado).")
+    } else {
+        println("No se modificó la liga con ID ${liga.id}. Puede que el ID no exista o los datos fueran los mismos.")
+    }
+
+    //cliente.close()
+    //println("Conexión cerrada.")
+}
+
+fun eliminarLiga() {
+    var id: Int? = null
+    while (id == null) {
+        print("ID de la liga a eliminar: ")
+        val entrada = scanner.nextLine()
+        id = entrada.toIntOrNull()
+        if (id == null) {
+            println("El ID debe ser un número !!!")
+        }
+    }
+
+    val result = coleccionLigas.deleteOne(Filters.eq("id_liga", id))
+    if (result.deletedCount > 0)
+        println("Liga eliminada correctamente.")
+    else
+        println("No se encontró ninguna liga con ese nombre.")
+
+    //cliente.close()
+    //println("Conexión cerrada.")
+}
 
 //BD
 fun exportarBD(coleccion: MongoCollection<Document>, rutaJSON: String) {
