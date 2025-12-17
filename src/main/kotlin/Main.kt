@@ -127,12 +127,12 @@ fun crudEquipo() {
             listOf(
                 "Listar equipos",
                 "Obtener equipo por ID",
-                "Equipos con mas titulos que",
                 "Insertar equipo",
                 "Actualizar equipo",
+                "Eliminar equipo",
+                "Equipos con mas titulos que",
                 "Nombre y titulos de los equipos",
                 "Media de titulos",
-                "Eliminar equipo",
                 "Exportar coleccion",
                 "Importar coleccion",
                 "Salir"
@@ -157,19 +157,6 @@ fun crudEquipo() {
             }
 
             "3" -> {
-                val cant = leerEntero("Introduce la cantidad de titulos")
-                val equipos = getEquiposConMasTitulos(cant)
-
-                if (!equipos.isEmpty()) {
-                    equipos.forEach {
-                        println("id: ${it.id} - nombre: ${it.nombre} - fundacion: ${it.fundacion} - titulos: ${it.titulos} - valor mercado: ${it.valorMercado}")
-                    }
-                } else {
-                    println("No se han encontrado equipos con una mayor cantidad de titulos que la especificada")
-                }
-            }
-
-            "4" -> {
                 val id = leerEntero("Introduce el id del equipo a insertar:")
                 val equipoExistente = getEquipoPorId(id)
 
@@ -194,7 +181,7 @@ fun crudEquipo() {
                 }
             }
 
-            "5" -> {
+            "4" -> {
                 val id = leerEntero("Introduce el id del equipo a modificar:")
                 val equipoExistente = getEquipoPorId(id)
 
@@ -254,7 +241,22 @@ fun crudEquipo() {
                 }
             }
 
+            "5" -> eliminarEquipo()
+
             "6" -> {
+                val cant = leerEntero("Introduce la cantidad de titulos")
+                val equipos = getEquiposConMasTitulos(cant)
+
+                if (!equipos.isEmpty()) {
+                    equipos.forEach {
+                        println("id: ${it.id} - nombre: ${it.nombre} - fundacion: ${it.fundacion} - titulos: ${it.titulos} - valor mercado: ${it.valorMercado}")
+                    }
+                } else {
+                    println("No se han encontrado equipos con una mayor cantidad de titulos que la especificada")
+                }
+            }
+
+            "7" -> {
                 getNombresTitulos().forEach {
                     val nombre = it.first
                     val titulos = it.second
@@ -263,11 +265,9 @@ fun crudEquipo() {
                 }
             }
 
-            "7" -> {
+            "8" -> {
                 println("La media de titulos es: ${calcularMediaTitulos()}")
             }
-
-            "8" -> eliminarEquipo()
 
             "9" -> {
                 exportarBD(coleccionEquipos, "src/main/resources/equipos.json")
@@ -457,6 +457,29 @@ fun calcularMediaTitulos(): Double {
     } catch (e: Exception) {
         println("Ha ocurrido un error en la consulta")
         0.0
+    }
+}
+
+fun mostrarClubesPorValorMercado() {
+    try {
+        val cursor = coleccionEquipos
+            .find()
+            .projection(
+                Projections.include("nombre", "valorMercado")
+            )
+            .sort(
+                Document("valorMercado", -1)
+            )
+
+        cursor.forEach { doc ->
+            val nombre = doc.getString("nombre")
+            val valorMercado = doc.get("valorMercado").toString().toDouble()
+
+            println("$nombre - $valorMercado €")
+        }
+
+    } catch (e: Exception) {
+        println("Error al mostrar los clubes por valor de mercado")
     }
 }
 
