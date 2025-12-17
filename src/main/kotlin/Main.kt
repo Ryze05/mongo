@@ -13,12 +13,6 @@ import org.json.JSONArray
 import java.io.File
 import java.util.Scanner
 
-
-/*const val NOM_SRV = "mongodb://localhost:27017"
-const val NOM_BD = "clubes"
-const val NOM_COLECCION = "equipos"*/
-
-//variables globales definidas sin inicializar
 lateinit var servidor: MongoServer
 lateinit var cliente: MongoClient
 lateinit var uri: String
@@ -39,15 +33,16 @@ data class Equipo(
     val nombre: String,
     val fundacion: Int,
     val titulos: Int,
-    val valorMercado: Double
+    val valorMercado: Double,
+    val idLiga: Int
 )
 
 data class Jugador(
     val id: Int,
     val nombre: String,
-    val fecha_nacimiento: String,
+    val fechaNacimiento: String,
     val posicion: String,
-    val id_equipo: Int
+    val idEquipo: Int
 )
 
 data class Liga(
@@ -64,19 +59,32 @@ fun main() {
     importarBD("src/main/resources/ligas.json", coleccionLigas)
 
     do {
-        menuMostar(listOf("Ligas", "Equipos", "Jugadores", "Salir"))
+        menuMostar(
+            listOf(
+                "Ligas",
+                "Equipos",
+                "Jugadores",
+                "Clubes por liga",
+                "Ligas por valor de mercadp",
+                "Jugadores con equipo y liga",
+                "Salir"
+            )
+        )
         println("Introduce una opcion:")
         val option = readln()
         when (option) {
             "1" -> crudLiga()
             "2" -> crudEquipo()
             "3" -> crudJugador()
-            "4" -> {
+            "4" -> mostrarEquiposLiga()
+            "5" -> mostrarLigasPorValorMercado()
+            "6" -> mostrarJugadoresConEquipoYLiga()
+            "7" -> {
                 println("Saliendo...")
                 desconectarBD()
             }
         }
-    } while (option != "4")
+    } while (option != "7")
 }
 
 fun conectarBD() {
@@ -101,7 +109,6 @@ fun desconectarBD() {
 
 
 //EQUIPO
-//TODO incluir id liga
 fun crudEquipo() {
     do {
         menuMostar(
@@ -114,8 +121,8 @@ fun crudEquipo() {
                 "Nombre y titulos de los equipos",
                 "Media de titulos",
                 "Eliminar equipo",
-                "Exportar a JSON",
-                "Importar",
+                "Exportar coleccion",
+                "Importar coleccion",
                 "Salir"
             )
         )
@@ -155,27 +162,35 @@ fun crudEquipo() {
                 val equipoExistente = getEquipoPorId(id)
 
                 if (equipoExistente == null) {
-                    val nombre = leerCadena("Introduce un nuevo nombre:")
-                    val fundacion = leerEntero("Introduce un nuevo año de fundacion:")
-                    val titulos = leerEntero("Introduce una nueva cantidad de titulos:")
-                    val valorMercado = leerDouble("Introduce un nuevo valor de mercado:")
+                    val nombre = leerCadena("Introduce el nombre:")
+                    val fundacion = leerEntero("Introduce el año de fundacion:")
+                    val titulos = leerEntero("Introduce la cantidad de titulos:")
+                    val valorMercado = leerDouble("Introduce el valor de mercado:")
+                    val idLiga = leerEntero("Introduce el ID liga:")
 
-                    val equipo = Equipo(id, nombre, fundacion, titulos, valorMercado)
-                    insertarEquipo(equipo)
+                    val ligaExistente = getLigaPorId(idLiga)
+
+                    if (ligaExistente != null) {
+                        val equipo = Equipo(id, nombre, fundacion, titulos, valorMercado, idLiga)
+                        insertarEquipo(equipo)
+                    } else {
+                        println("La liga no existe")
+                    }
+
                 } else {
                     println("Ya existe un equipo con ese ID")
                 }
             }
 
             "5" -> {
-                val id = leerEntero("Introduce el id del quipo a modificar:")
+                val id = leerEntero("Introduce el id del equipo a modificar:")
                 val equipoExistente = getEquipoPorId(id)
 
                 if (equipoExistente != null) {
-                    println("Equipo encontrado: ID: ${equipoExistente.id} - Nombre: ${equipoExistente.nombre} - Fundacion: ${equipoExistente.fundacion} - Titulos: ${equipoExistente.titulos} - Valor de mercado: ${equipoExistente.valorMercado}")
+                    println("Equipo encontrado: ID: ${equipoExistente.id} - Nombre: ${equipoExistente.nombre} - Fundacion: ${equipoExistente.fundacion} - Titulos: ${equipoExistente.titulos} - Valor de mercado: ${equipoExistente.valorMercado} - ID liga: ${equipoExistente.idLiga}")
 
                     do {
-                        menuMostar(listOf("nombre", "fundacion", "titulos", "valor de mercado", "Salir"))
+                        menuMostar(listOf("nombre", "fundacion", "titulos", "valor de mercado", "ID liga", "Salir"))
                         println("Selecciona una opcion:")
                         val optionUpdate = readln()
 
@@ -204,10 +219,22 @@ fun crudEquipo() {
                                 actualizarEquipo(equipoCopia)
                             }
 
-                            "5" -> println("Saliendo...")
+                            "5" -> {
+                                val idLiga = leerEntero("Introduce un nuevo ID liga:")
+                                val ligaExistente = getLigaPorId(idLiga)
+
+                                if (ligaExistente != null) {
+                                    val equipoCopia = equipoExistente.copy(idLiga = idLiga)
+                                    actualizarEquipo(equipoCopia)
+                                } else {
+                                    println("No se ha encontrado una liga con ese ID")
+                                }
+                            }
+
+                            "6" -> println("Saliendo...")
                             else -> println("Opcion no valida")
                         }
-                    } while (optionUpdate != "5")
+                    } while (optionUpdate != "6")
 
 
                 } else {
@@ -229,6 +256,7 @@ fun crudEquipo() {
             }
 
             "8" -> eliminarEquipo()
+
             "9" -> {
                 exportarBD(coleccionEquipos, "src/main/resources/equipos.json")
             }
@@ -239,7 +267,6 @@ fun crudEquipo() {
 
             "11" -> {
                 println("Saliendo...")
-                //desconectarBD()
             }
         }
     } while (option != "11")
@@ -252,7 +279,8 @@ fun getEquipos() {
         val fundacion = doc.getInteger("fundacion")
         val titulos = doc.getInteger("titulos")
         val valorMercado = doc.get("valorMercado").toString().toDouble()
-        println("id: ${id} - nombre: ${nombre} - fundacion: ${fundacion} - titulos: ${titulos} - valor mercado: ${valorMercado}")
+        val idLiga = doc.getInteger("id_liga")
+        println("id: $id - nombre: $nombre - fundacion: $fundacion - titulos: $titulos - valor mercado: $valorMercado - ID liga: $idLiga")
     }
 }
 
@@ -328,8 +356,9 @@ fun getEquipoPorId(idEquipo: Int): Equipo? {
         val fundacion = doc.getInteger("fundacion")
         val titulos = doc.getInteger("titulos")
         val valorMercado = doc.get("valorMercado").toString().toDouble()
+        val idLiga = doc.getInteger("id_liga")
 
-        Equipo(id, nombre, fundacion, titulos, valorMercado)
+        Equipo(id, nombre, fundacion, titulos, valorMercado, idLiga)
     } else {
         null
     }
@@ -351,8 +380,9 @@ fun getEquiposConMasTitulos(minimoTitulos: Int): List<Equipo> {
             val fundacion = doc.getInteger("fundacion")
             val titulos = doc.getInteger("titulos")
             val valorMercado = doc.get("valorMercado").toString().toDouble()
+            val idLiga = doc.getInteger("id_liga")
 
-            val equipo = Equipo(id, nombre, fundacion, titulos, valorMercado)
+            val equipo = Equipo(id, nombre, fundacion, titulos, valorMercado, idLiga)
             equipos.add(equipo)
         }
     }
@@ -412,6 +442,8 @@ fun crudJugador() {
                 "Insertar jugador",
                 "Actualizar jugador",
                 "Eliminar jugador",
+                "Exportar coleccion",
+                "Importar coleccion",
                 "Salir"
             )
         )
@@ -424,11 +456,12 @@ fun crudJugador() {
                 val jugador = getJugadorPorId(id)
 
                 if (jugador != null) {
-                    println("Equipo encontrado: ID: ${jugador.id} - nombre: ${jugador.nombre} - fecha nacimiento: ${jugador.fecha_nacimiento} - posicion: ${jugador.posicion} - ID equipo: ${jugador.id_equipo}")
+                    println("Equipo encontrado: ID: ${jugador.id} - nombre: ${jugador.nombre} - fecha nacimiento: ${jugador.fechaNacimiento} - posicion: ${jugador.posicion} - ID equipo: ${jugador.idEquipo}")
                 } else {
                     println("Jugador con ID $id no encontrado")
                 }
             }
+
             "3" -> {
                 val id = leerEntero("Introduce el id del jugador a insertar:")
                 val jugadorExistente = getJugadorPorId(id)
@@ -452,12 +485,13 @@ fun crudJugador() {
                     println("Ya existe un jugador con ese ID")
                 }
             }
+
             "4" -> {
                 val id = leerEntero("Introduce el id del jugador a modificar:")
                 val jugadorExistente = getJugadorPorId(id)
 
                 if (jugadorExistente != null) {
-                    println("Jugador encontrado: ID: ${jugadorExistente.id} - Nombre: ${jugadorExistente.nombre} - Fecha nacimiento: ${jugadorExistente.fecha_nacimiento} - Posicion: ${jugadorExistente.posicion} - ID equipo: ${jugadorExistente.id_equipo}")
+                    println("Jugador encontrado: ID: ${jugadorExistente.id} - Nombre: ${jugadorExistente.nombre} - Fecha nacimiento: ${jugadorExistente.fechaNacimiento} - Posicion: ${jugadorExistente.posicion} - ID equipo: ${jugadorExistente.idEquipo}")
 
                     do {
                         menuMostar(listOf("Nombre", "Fecha nacimiento", "Posicion", "ID equipo", "Salir"))
@@ -473,7 +507,7 @@ fun crudJugador() {
 
                             "2" -> {
                                 val fechaNacimiento = leerCadena("Introduce una nueva fecha de nacimiento:")
-                                val jugadorCopia = jugadorExistente.copy(fecha_nacimiento = fechaNacimiento)
+                                val jugadorCopia = jugadorExistente.copy(fechaNacimiento = fechaNacimiento)
                                 actualizarJugador(jugadorCopia)
                             }
 
@@ -488,7 +522,7 @@ fun crudJugador() {
                                 val equipo = getEquipoPorId(idEquipo)
 
                                 if (equipo != null) {
-                                    val jugadorCopia = jugadorExistente.copy(id_equipo = idEquipo)
+                                    val jugadorCopia = jugadorExistente.copy(idEquipo = idEquipo)
                                     actualizarJugador(jugadorCopia)
                                 } else {
                                     println("No se ha encontrado un equipo con ese ID")
@@ -505,11 +539,20 @@ fun crudJugador() {
                     println("El equipo con ese ID no existe")
                 }
             }
+
             "5" -> eliminarJugador()
-            "6" -> println("Saliendo...")
+            "6" -> {
+                exportarBD(coleccionJugadores, "src/main/resources/jugadores.json")
+            }
+
+            "7" -> {
+                importarBD("src/main/resources/jugadores.json", coleccionJugadores)
+            }
+
+            "8" -> println("Saliendo...")
         }
 
-    } while (option != "6") //TODO
+    } while (option != "8")
 }
 
 fun getJugadores() {
@@ -550,9 +593,9 @@ fun actualizarJugador(jugador: Jugador) {
     val actualizacion = Document(
         "\$set", Document()
             .append("nombre", jugador.nombre)
-            .append("fecha_nacimiento", jugador.fecha_nacimiento)
+            .append("fecha_nacimiento", jugador.fechaNacimiento)
             .append("posicion", jugador.posicion)
-            .append("id_equipo", jugador.id_equipo)
+            .append("id_equipo", jugador.idEquipo)
     )
 
     val result = coleccionJugadores.updateOne(filtro, actualizacion)
@@ -570,9 +613,9 @@ fun actualizarJugador(jugador: Jugador) {
 fun insertarJugador(jugador: Jugador) {
     val doc = Document("id_jugador", jugador.id)
         .append("nombre", jugador.nombre)
-        .append("fecha_nacimiento", jugador.fecha_nacimiento)
+        .append("fecha_nacimiento", jugador.fechaNacimiento)
         .append("posicion", jugador.posicion)
-        .append("id_equipo", jugador.id_equipo)
+        .append("id_equipo", jugador.idEquipo)
 
     coleccionJugadores.insertOne(doc)
     println("Jugador insertado con ID: ${doc.getObjectId("_id")}")
@@ -612,6 +655,8 @@ fun crudLiga() {
                 "Insertar liga",
                 "Actualizar liga",
                 "Eliminar liga",
+                "Exportar coleccion",
+                "Importar coleccion",
                 "Salir"
             )
         )
@@ -629,6 +674,7 @@ fun crudLiga() {
                     println("Liga con ID $id no encontrada")
                 }
             }
+
             "3" -> {
                 val id = leerEntero("Introduce el id de la liga a insertar:")
                 val ligaExistente = getLigaPorId(id)
@@ -645,6 +691,7 @@ fun crudLiga() {
                     println("Ya existe una liga con ese ID")
                 }
             }
+
             "4" -> {
                 val id = leerEntero("Introduce el id de la liga a modificar:")
                 val ligaExistente = getLigaPorId(id)
@@ -686,11 +733,20 @@ fun crudLiga() {
                     println("El equipo con ese ID no existe")
                 }
             }
+
             "5" -> eliminarLiga()
-            "6" -> println("Saliendo...")
+            "6" -> {
+                exportarBD(coleccionLigas, "src/main/resources/ligas.json")
+            }
+
+            "7" -> {
+                importarBD("src/main/resources/ligas.json", coleccionLigas)
+            }
+
+            "8" -> println("Saliendo...")
         }
 
-    } while (option != "6") //TODO
+    } while (option != "8")
 }
 
 fun getLigas() {
@@ -778,6 +834,170 @@ fun eliminarLiga() {
     //cliente.close()
     //println("Conexión cerrada.")
 }
+
+//Joins
+fun mostrarEquiposLiga() {
+    val idLiga = leerEntero("ID de la liga: ")
+
+    val ligaDoc = coleccionLigas
+        .find(Document("id_liga", idLiga))
+        .first()
+
+    if (ligaDoc == null) {
+        println("No existe ninguna liga con ID $idLiga")
+        return
+    }
+
+    val nombreLiga = ligaDoc["nombre"]
+    val pais = ligaDoc["pais"]
+    val division = ligaDoc["division"]
+
+    val pipeline = listOf(
+        Document("\$match", Document("id_liga", idLiga)),
+        Document(
+            "\$lookup", Document()
+                .append("from", "equipos")
+                .append("localField", "id_liga")
+                .append("foreignField", "id_liga")
+                .append("as", "equipos")
+        ),
+        Document("\$unwind", "\$equipos"),
+        Document(
+            "\$project", Document()
+                .append("nombre_equipo", "\$equipos.nombre")
+                .append("fundacion", "\$equipos.fundacion")
+                .append("titulos", "\$equipos.titulos")
+                .append("valorMercado", "\$equipos.valorMercado")
+        )
+    )
+
+    val equipos = coleccionLigas.aggregate(pipeline).toList()
+
+    if (equipos.isEmpty()) {
+        println("La liga no tiene equipos asociados")
+        return
+    }
+
+    println("===============================================================")
+    println("LIGA: $nombreLiga")
+    println("PAÍS: $pais | DIVISIÓN: $division")
+    println("---------------------------------------------------------------")
+    println(
+        String.format(
+            "%-20s %-12s %-10s %-15s",
+            "Equipo", "Fundación", "Títulos", "Valor mercado"
+        )
+    )
+    println("---------------------------------------------------------------")
+
+    equipos.forEach { equipo ->
+        val nombre = equipo["nombre_equipo"] as String
+        val fundacion = equipo["fundacion"] as Int
+        val titulos = equipo["titulos"] as Int
+        val valorMercado = equipo["valorMercado"].toString().toDouble()
+
+        println(
+            String.format(
+                "%-20s %-12d %-10d %-15.2f",
+                nombre, fundacion, titulos, valorMercado
+            )
+        )
+    }
+
+    println("===============================================================")
+}
+
+fun mostrarLigasPorValorMercado() {
+
+    val pipeline = listOf(
+
+        Document(
+            "\$lookup", Document()
+                .append("from", "ligas")
+                .append("localField", "id_liga")
+                .append("foreignField", "id_liga")
+                .append("as", "liga")
+        ),
+
+        Document("\$unwind", "\$liga"),
+
+        Document(
+            "\$group", Document()
+                .append("_id", "\$liga.nombre")
+                .append("valor_total", Document("\$sum", "\$valorMercado"))
+        ),
+
+        Document("\$sort", Document("valor_total", -1))
+    )
+
+    val resultado = coleccionEquipos.aggregate(pipeline)
+
+    println("=================================================")
+    println("LIGAS ORDENADAS POR VALOR TOTAL DE MERCADO")
+    println("=================================================")
+
+    resultado.forEach { doc ->
+        val nombreLiga = doc.getString("_id")
+        val valorTotal = doc.getDouble("valor_total")
+
+        println("Liga: $nombreLiga - Valor total: $valorTotal €")
+    }
+}
+
+fun mostrarJugadoresConEquipoYLiga() {
+
+    val pipeline = listOf(
+
+        Document(
+            "\$lookup", Document()
+                .append("from", "equipos")
+                .append("localField", "id_equipo")
+                .append("foreignField", "id")
+                .append("as", "equipo")
+        ),
+
+        // 2️⃣ Sacar el equipo del array
+        Document("\$unwind", "\$equipo"),
+
+        // 3️⃣ Join equipos → ligas
+        Document(
+            "\$lookup", Document()
+                .append("from", "ligas")
+                .append("localField", "equipo.id_liga")
+                .append("foreignField", "id_liga")
+                .append("as", "liga")
+        ),
+
+        // 4️⃣ Sacar la liga del array
+        Document("\$unwind", "\$liga"),
+
+        // 5️⃣ Proyección final (qué quiero mostrar)
+        Document(
+            "\$project", Document()
+                .append("_id", 0)
+                .append("jugador", "\$nombre")
+                .append("equipo", "\$equipo.nombre")
+                .append("liga", "\$liga.nombre")
+                .append("posicion", "\$posicion")
+        )
+    )
+
+    val resultado = coleccionJugadores.aggregate(pipeline)
+
+    println("=================================================")
+    println("JUGADORES CON SU EQUIPO Y LIGA")
+    println("=================================================")
+
+    resultado.forEach { doc ->
+        println(
+            "Jugador: ${doc.getString("jugador")} | " +
+                    "Equipo: ${doc.getString("equipo")} | " +
+                    "Liga: ${doc.getString("liga")} | " +
+                    "Posición: ${doc.getString("posicion")}"
+        )
+    }
+}
+
 
 //BD
 fun exportarBD(coleccion: MongoCollection<Document>, rutaJSON: String) {
