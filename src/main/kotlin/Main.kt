@@ -881,164 +881,170 @@ fun eliminarLiga() {
 
 //Joins
 fun mostrarEquiposLiga() {
-    val idLiga = leerEntero("ID de la liga: ")
+    try {
+        val idLiga = leerEntero("ID de la liga: ")
 
-    val ligaDoc = coleccionLigas
-        .find(Document("id_liga", idLiga))
-        .first()
+        val ligaDoc = coleccionLigas
+            .find(Document("id_liga", idLiga))
+            .first()
 
-    if (ligaDoc == null) {
-        println("No existe ninguna liga con ID $idLiga")
-        return
-    }
+        if (ligaDoc == null) {
+            println("No existe ninguna liga con ID $idLiga")
+            return
+        }
 
-    val nombreLiga = ligaDoc["nombre"]
-    val pais = ligaDoc["pais"]
-    val division = ligaDoc["division"]
+        val nombreLiga = ligaDoc["nombre"]
+        val pais = ligaDoc["pais"]
+        val division = ligaDoc["division"]
 
-    val pipeline = listOf(
-        Document("\$match", Document("id_liga", idLiga)),
-        Document(
-            "\$lookup", Document()
-                .append("from", "equipos")
-                .append("localField", "id_liga")
-                .append("foreignField", "id_liga")
-                .append("as", "equipos")
-        ),
-        Document("\$unwind", "\$equipos"),
-        Document(
-            "\$project", Document()
-                .append("nombre_equipo", "\$equipos.nombre")
-                .append("fundacion", "\$equipos.fundacion")
-                .append("titulos", "\$equipos.titulos")
-                .append("valorMercado", "\$equipos.valorMercado")
-        )
-    )
-
-    val equipos = coleccionLigas.aggregate(pipeline).toList()
-
-    if (equipos.isEmpty()) {
-        println("La liga no tiene equipos asociados")
-        return
-    }
-
-    println("===============================================================")
-    println("LIGA: $nombreLiga")
-    println("PAÍS: $pais | DIVISIÓN: $division")
-    println("---------------------------------------------------------------")
-    println(
-        String.format(
-            "%-20s %-12s %-10s %-15s",
-            "Equipo", "Fundación", "Títulos", "Valor mercado"
-        )
-    )
-    println("---------------------------------------------------------------")
-
-    equipos.forEach { equipo ->
-        val nombre = equipo["nombre_equipo"] as String
-        val fundacion = equipo["fundacion"] as Int
-        val titulos = equipo["titulos"] as Int
-        val valorMercado = equipo["valorMercado"].toString().toDouble()
-
-        println(
-            String.format(
-                "%-20s %-12d %-10d %-15.2f",
-                nombre, fundacion, titulos, valorMercado
+        val pipeline = listOf(
+            Document("\$match", Document("id_liga", idLiga)),
+            Document(
+                "\$lookup", Document()
+                    .append("from", "equipos")
+                    .append("localField", "id_liga")
+                    .append("foreignField", "id_liga")
+                    .append("as", "equipos")
+            ),
+            Document("\$unwind", "\$equipos"),
+            Document(
+                "\$project", Document()
+                    .append("nombre_equipo", "\$equipos.nombre")
+                    .append("fundacion", "\$equipos.fundacion")
+                    .append("titulos", "\$equipos.titulos")
+                    .append("valorMercado", "\$equipos.valorMercado")
             )
         )
-    }
 
-    println("===============================================================")
+        val equipos = coleccionLigas.aggregate(pipeline).toList()
+
+        if (equipos.isEmpty()) {
+            println("La liga no tiene equipos asociados")
+            return
+        }
+
+        println("===============================================================")
+        println("LIGA: $nombreLiga")
+        println("PAÍS: $pais | DIVISIÓN: $division")
+        println("---------------------------------------------------------------")
+        println(
+            String.format(
+                "%-20s %-12s %-10s %-15s",
+                "Equipo", "Fundación", "Títulos", "Valor mercado"
+            )
+        )
+        println("---------------------------------------------------------------")
+
+        equipos.forEach { equipo ->
+            val nombre = equipo["nombre_equipo"] as String
+            val fundacion = equipo["fundacion"] as Int
+            val titulos = equipo["titulos"] as Int
+            val valorMercado = equipo["valorMercado"].toString().toDouble()
+
+            println(
+                String.format(
+                    "%-20s %-12d %-10d %-15.2f",
+                    nombre, fundacion, titulos, valorMercado
+                )
+            )
+        }
+
+        println("===============================================================")
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
+    }
 }
 
 fun mostrarLigasPorValorMercado() {
+    try {
+        val pipeline = listOf(
 
-    val pipeline = listOf(
+            Document(
+                "\$lookup", Document()
+                    .append("from", "ligas")
+                    .append("localField", "id_liga")
+                    .append("foreignField", "id_liga")
+                    .append("as", "liga")
+            ),
 
-        Document(
-            "\$lookup", Document()
-                .append("from", "ligas")
-                .append("localField", "id_liga")
-                .append("foreignField", "id_liga")
-                .append("as", "liga")
-        ),
+            Document("\$unwind", "\$liga"),
 
-        Document("\$unwind", "\$liga"),
+            Document(
+                "\$group", Document()
+                    .append("_id", "\$liga.nombre")
+                    .append("valor_total", Document("\$sum", "\$valorMercado"))
+            ),
 
-        Document(
-            "\$group", Document()
-                .append("_id", "\$liga.nombre")
-                .append("valor_total", Document("\$sum", "\$valorMercado"))
-        ),
+            Document("\$sort", Document("valor_total", -1))
+        )
 
-        Document("\$sort", Document("valor_total", -1))
-    )
+        val resultado = coleccionEquipos.aggregate(pipeline)
 
-    val resultado = coleccionEquipos.aggregate(pipeline)
+        println("=================================================")
+        println("LIGAS ORDENADAS POR VALOR TOTAL DE MERCADO")
+        println("=================================================")
 
-    println("=================================================")
-    println("LIGAS ORDENADAS POR VALOR TOTAL DE MERCADO")
-    println("=================================================")
+        resultado.forEach { doc ->
+            val nombreLiga = doc.getString("_id")
+            val valorTotal = doc.getDouble("valor_total")
 
-    resultado.forEach { doc ->
-        val nombreLiga = doc.getString("_id")
-        val valorTotal = doc.getDouble("valor_total")
-
-        println("Liga: $nombreLiga - Valor total: $valorTotal €")
+            println("Liga: $nombreLiga - Valor total: $valorTotal €")
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
 }
 
 fun mostrarJugadoresConEquipoYLiga() {
+    try {
+        val pipeline = listOf(
 
-    val pipeline = listOf(
+            Document(
+                "\$lookup", Document()
+                    .append("from", "equipos")
+                    .append("localField", "id_equipo")
+                    .append("foreignField", "id")
+                    .append("as", "equipo")
+            ),
 
-        Document(
-            "\$lookup", Document()
-                .append("from", "equipos")
-                .append("localField", "id_equipo")
-                .append("foreignField", "id")
-                .append("as", "equipo")
-        ),
+            Document("\$unwind", "\$equipo"),
 
-        // 2️⃣ Sacar el equipo del array
-        Document("\$unwind", "\$equipo"),
+            Document(
+                "\$lookup", Document()
+                    .append("from", "ligas")
+                    .append("localField", "equipo.id_liga")
+                    .append("foreignField", "id_liga")
+                    .append("as", "liga")
+            ),
 
-        // 3️⃣ Join equipos → ligas
-        Document(
-            "\$lookup", Document()
-                .append("from", "ligas")
-                .append("localField", "equipo.id_liga")
-                .append("foreignField", "id_liga")
-                .append("as", "liga")
-        ),
+            Document("\$unwind", "\$liga"),
 
-        // 4️⃣ Sacar la liga del array
-        Document("\$unwind", "\$liga"),
-
-        // 5️⃣ Proyección final (qué quiero mostrar)
-        Document(
-            "\$project", Document()
-                .append("_id", 0)
-                .append("jugador", "\$nombre")
-                .append("equipo", "\$equipo.nombre")
-                .append("liga", "\$liga.nombre")
-                .append("posicion", "\$posicion")
+            Document(
+                "\$project", Document()
+                    .append("_id", 0)
+                    .append("jugador", "\$nombre")
+                    .append("equipo", "\$equipo.nombre")
+                    .append("liga", "\$liga.nombre")
+                    .append("posicion", "\$posicion")
+            )
         )
-    )
 
-    val resultado = coleccionJugadores.aggregate(pipeline)
+        val resultado = coleccionJugadores.aggregate(pipeline)
 
-    println("=================================================")
-    println("JUGADORES CON SU EQUIPO Y LIGA")
-    println("=================================================")
+        println("=================================================")
+        println("JUGADORES CON SU EQUIPO Y LIGA")
+        println("=================================================")
 
-    resultado.forEach { doc ->
-        println(
-            "Jugador: ${doc.getString("jugador")} | " +
-                    "Equipo: ${doc.getString("equipo")} | " +
-                    "Liga: ${doc.getString("liga")} | " +
-                    "Posición: ${doc.getString("posicion")}"
-        )
+        resultado.forEach { doc ->
+            println(
+                "Jugador: ${doc.getString("jugador")} | " +
+                        "Equipo: ${doc.getString("equipo")} | " +
+                        "Liga: ${doc.getString("liga")} | " +
+                        "Posición: ${doc.getString("posicion")}"
+            )
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
 }
 
