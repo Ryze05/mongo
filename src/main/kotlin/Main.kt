@@ -67,6 +67,8 @@ fun main() {
                 "Clubes por liga",
                 "Ligas por valor de mercadp",
                 "Jugadores con equipo y liga",
+                "Exportar colecciones",
+                "Importar colecciones",
                 "Salir"
             )
         )
@@ -80,11 +82,21 @@ fun main() {
             "5" -> mostrarLigasPorValorMercado()
             "6" -> mostrarJugadoresConEquipoYLiga()
             "7" -> {
+                exportarBD(coleccionEquipos, "src/main/resources/equipos.json")
+                exportarBD(coleccionJugadores, "src/main/resources/jugadores.json")
+                exportarBD(coleccionLigas, "src/main/resources/ligas.json")
+            }
+            "8" -> {
+                importarBD("src/main/resources/equipos.json", coleccionEquipos)
+                importarBD("src/main/resources/jugadores.json", coleccionJugadores)
+                importarBD("src/main/resources/ligas.json", coleccionLigas)
+            }
+            "9" -> {
                 println("Saliendo...")
                 desconectarBD()
             }
         }
-    } while (option != "7")
+    } while (option != "9")
 }
 
 fun conectarBD() {
@@ -735,6 +747,7 @@ fun crudLiga() {
             }
 
             "5" -> eliminarLiga()
+
             "6" -> {
                 exportarBD(coleccionLigas, "src/main/resources/ligas.json")
             }
