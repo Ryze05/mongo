@@ -285,108 +285,90 @@ fun crudEquipo() {
 }
 
 fun getEquipos() {
-    coleccionEquipos.find().forEach { doc ->
-        val id = doc.getInteger("id")
-        val nombre = doc.getString("nombre")
-        val fundacion = doc.getInteger("fundacion")
-        val titulos = doc.getInteger("titulos")
-        val valorMercado = doc.get("valorMercado").toString().toDouble()
-        val idLiga = doc.getInteger("id_liga")
-        println("id: $id - nombre: $nombre - fundacion: $fundacion - titulos: $titulos - valor mercado: $valorMercado - ID liga: $idLiga")
+    try {
+        coleccionEquipos.find().forEach { doc ->
+            val id = doc.getInteger("id")
+            val nombre = doc.getString("nombre")
+            val fundacion = doc.getInteger("fundacion")
+            val titulos = doc.getInteger("titulos")
+            val valorMercado = doc.get("valorMercado").toString().toDouble()
+            val idLiga = doc.getInteger("id_liga")
+            println("id: $id - nombre: $nombre - fundacion: $fundacion - titulos: $titulos - valor mercado: $valorMercado - ID liga: $idLiga")
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
 }
 
 fun insertarEquipo(equipo: Equipo) {
-    val doc = Document("id", equipo.id)
-        .append("nombre", equipo.nombre)
-        .append("fundacion", equipo.fundacion)
-        .append("titulos", equipo.titulos)
-        .append("valorMercado", equipo.valorMercado)
-
-    coleccionEquipos.insertOne(doc)
-    println("Equipo insertado con ID: ${doc.getObjectId("_id")}")
-
-    //cliente.close()
-    println("Conexión cerrada")
-}
-
-fun actualizarEquipo(equipo: Equipo) {
-    val filtro = Filters.eq("id", equipo.id)
-
-    val actualizacion = Document(
-        "\$set", Document()
+    try {
+        val doc = Document("id", equipo.id)
             .append("nombre", equipo.nombre)
             .append("fundacion", equipo.fundacion)
             .append("titulos", equipo.titulos)
             .append("valorMercado", equipo.valorMercado)
-    )
 
-    val result = coleccionEquipos.updateOne(filtro, actualizacion)
-
-    if (result.modifiedCount > 0) {
-        println("Equipo con ID ${equipo.id} actualizado correctamente (${result.modifiedCount} documento modificado).")
-    } else {
-        println("No se modificó el equipo con ID ${equipo.id}. Puede que el ID no exista o los datos fueran los mismos.")
+        coleccionEquipos.insertOne(doc)
+        println("Equipo insertado con ID: ${doc.getObjectId("_id")}")
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
+}
 
-    //cliente.close()
-    //println("Conexión cerrada.")
+fun actualizarEquipo(equipo: Equipo) {
+    try {
+        val filtro = Filters.eq("id", equipo.id)
+
+        val actualizacion = Document(
+            "\$set", Document()
+                .append("nombre", equipo.nombre)
+                .append("fundacion", equipo.fundacion)
+                .append("titulos", equipo.titulos)
+                .append("valorMercado", equipo.valorMercado)
+        )
+
+        val result = coleccionEquipos.updateOne(filtro, actualizacion)
+
+        if (result.modifiedCount > 0) {
+            println("Equipo con ID ${equipo.id} actualizado correctamente (${result.modifiedCount} documento modificado).")
+        } else {
+            println("No se modificó el equipo con ID ${equipo.id}. Puede que el ID no exista o los datos fueran los mismos.")
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
+    }
 }
 
 fun eliminarEquipo() {
-    var id: Int? = null
-    while (id == null) {
-        print("ID del equipo a eliminar: ")
-        val entrada = scanner.nextLine()
-        id = entrada.toIntOrNull()
-        if (id == null) {
-            println("El ID debe ser un número !!!")
+    try {
+        var id: Int? = null
+        while (id == null) {
+            print("ID del equipo a eliminar: ")
+            val entrada = scanner.nextLine()
+            id = entrada.toIntOrNull()
+            if (id == null) {
+                println("El ID debe ser un número !!!")
+            }
         }
+
+        val result = coleccionEquipos.deleteOne(Filters.eq("id", id))
+        if (result.deletedCount > 0)
+            println("Equipo eliminado correctamente.")
+        else
+            println("No se encontró ningun equipo con ese nombre.")
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
-
-    val result = coleccionEquipos.deleteOne(Filters.eq("id", id))
-    if (result.deletedCount > 0)
-        println("Equipo eliminado correctamente.")
-    else
-        println("No se encontró ningun equipo con ese nombre.")
-
-    //cliente.close()
-    //println("Conexión cerrada.")
 }
 
 fun getEquipoPorId(idEquipo: Int): Equipo? {
+    return try {
+        val filtro = Filters.eq("id", idEquipo)
 
-    val filtro = Filters.eq("id", idEquipo)
+        val doc = coleccionEquipos.find(filtro).first()
 
-    val doc = coleccionEquipos.find(filtro).first()
 
-    //cliente.close()
-
-    return if (doc != null) {
-        val id = doc.getInteger("id")
-        val nombre = doc.getString("nombre")
-        val fundacion = doc.getInteger("fundacion")
-        val titulos = doc.getInteger("titulos")
-        val valorMercado = doc.get("valorMercado").toString().toDouble()
-        val idLiga = doc.getInteger("id_liga")
-
-        Equipo(id, nombre, fundacion, titulos, valorMercado, idLiga)
-    } else {
-        null
-    }
-}
-
-fun getEquiposConMasTitulos(minimoTitulos: Int): List<Equipo> {
-
-    val equipos = mutableListOf<Equipo>()
-
-    val filtro = Filters.gt("titulos", minimoTitulos)
-
-    val cursor = coleccionEquipos.find(filtro).iterator()
-    cursor.use {
-        while (it.hasNext()) {
-            val doc = it.next()
-
+        return if (doc != null) {
             val id = doc.getInteger("id")
             val nombre = doc.getString("nombre")
             val fundacion = doc.getInteger("fundacion")
@@ -394,52 +376,86 @@ fun getEquiposConMasTitulos(minimoTitulos: Int): List<Equipo> {
             val valorMercado = doc.get("valorMercado").toString().toDouble()
             val idLiga = doc.getInteger("id_liga")
 
-            val equipo = Equipo(id, nombre, fundacion, titulos, valorMercado, idLiga)
-            equipos.add(equipo)
+            Equipo(id, nombre, fundacion, titulos, valorMercado, idLiga)
+        } else {
+            null
         }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
+        null
+    }
+}
+
+fun getEquiposConMasTitulos(minimoTitulos: Int): List<Equipo> {
+    val equipos = mutableListOf<Equipo>()
+
+    try {
+        val filtro = Filters.gt("titulos", minimoTitulos)
+        val cursor = coleccionEquipos.find(filtro).iterator()
+
+        cursor.use {
+            while (it.hasNext()) {
+                val doc = it.next()
+
+                val id = doc.getInteger("id")
+                val nombre = doc.getString("nombre")
+                val fundacion = doc.getInteger("fundacion")
+                val titulos = doc.getInteger("titulos")
+                val valorMercado = doc.get("valorMercado").toString().toDouble()
+                val idLiga = doc.getInteger("id_liga")
+
+                equipos.add(
+                    Equipo(id, nombre, fundacion, titulos, valorMercado, idLiga)
+                )
+            }
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
 
-    //cliente.close()
     return equipos
 }
 
 fun getNombresTitulos(): List<Pair<String, Int>> {
     val resultados = mutableListOf<Pair<String, Int>>()
 
-    val proyeccion = Projections.include("nombre", "titulos")
-    val cursor = coleccionEquipos.find().projection(proyeccion).iterator()
+    try {
+        val proyeccion = Projections.include("nombre", "titulos")
+        val cursor = coleccionEquipos.find().projection(proyeccion).iterator()
 
-    cursor.use {
-        while (it.hasNext()) {
-            val doc = it.next()
-
-            val nombre = doc.getString("nombre")
-            val titulos = doc.getInteger("titulos")
-
-            resultados.add(Pair(nombre, titulos))
+        cursor.use {
+            while (it.hasNext()) {
+                val doc = it.next()
+                resultados.add(
+                    Pair(
+                        doc.getString("nombre"),
+                        doc.getInteger("titulos")
+                    )
+                )
+            }
         }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
 
-    //cliente.close()
     return resultados
 }
 
 fun calcularMediaTitulos(): Double {
-    val pipeline = listOf(
-        Document(
-            "\$group",
-            Document("_id", null)
-                .append("titulosMedia", Document("\$avg", "\$titulos"))
+    return try {
+        val pipeline = listOf(
+            Document(
+                "\$group",
+                Document("_id", null)
+                    .append("titulosMedia", Document("\$avg", "\$titulos"))
+            )
         )
-    )
 
-    val resultado = coleccionEquipos.aggregate(pipeline).first()
+        val resultado = coleccionEquipos.aggregate(pipeline).first()
+        resultado?.getDouble("titulosMedia") ?: 0.0
 
-    //cliente.close()
-
-    return if (resultado != null) {
-        resultado.getDouble("titulosMedia") ?: 0.0
-    } else {
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
         0.0
     }
 }
@@ -568,93 +584,101 @@ fun crudJugador() {
 }
 
 fun getJugadores() {
-    coleccionJugadores.find().forEach { doc ->
-        val id = doc.getInteger("id_jugador")
-        val nombre = doc.getString("nombre")
-        val fecha_nacimiento = doc.getString("fecha_nacimiento")
-        val posicion = doc.getString("posicion")
-        val id_equipo = doc.getInteger("id_equipo")
-        println("id: ${id} - nombre: ${nombre} - fecha nacimiento: ${fecha_nacimiento} - posicion: ${posicion} - ID equipo: ${id_equipo}")
+    try {
+        coleccionJugadores.find().forEach { doc ->
+            val id = doc.getInteger("id_jugador")
+            val nombre = doc.getString("nombre")
+            val fecha_nacimiento = doc.getString("fecha_nacimiento")
+            val posicion = doc.getString("posicion")
+            val id_equipo = doc.getInteger("id_equipo")
+            println("id: ${id} - nombre: ${nombre} - fecha nacimiento: ${fecha_nacimiento} - posicion: ${posicion} - ID equipo: ${id_equipo}")
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
 }
 
 fun getJugadorPorId(idJugador: Int): Jugador? {
+    return try {
+        val filtro = Filters.eq("id_jugador", idJugador)
+        val doc = coleccionJugadores.find(filtro).first()
 
-    val filtro = Filters.eq("id_jugador", idJugador)
+        if (doc != null) {
+            Jugador(
+                doc.getInteger("id_jugador"),
+                doc.getString("nombre"),
+                doc.getString("fecha_nacimiento"),
+                doc.getString("posicion"),
+                doc.getInteger("id_equipo")
+            )
+        } else null
 
-    val doc = coleccionJugadores.find(filtro).first()
-
-    //cliente.close()
-
-    return if (doc != null) {
-        val id = doc.getInteger("id_jugador")
-        val nombre = doc.getString("nombre")
-        val fecha_nacimiento = doc.getString("fecha_nacimiento")
-        val posicion = doc.getString("posicion")
-        val id_equipo = doc.getInteger("id_equipo")
-
-        Jugador(id, nombre, fecha_nacimiento, posicion, id_equipo)
-    } else {
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
         null
     }
 }
 
 fun actualizarJugador(jugador: Jugador) {
-    val filtro = Filters.eq("id_jugador", jugador.id)
+    try {
+        val filtro = Filters.eq("id_jugador", jugador.id)
 
-    val actualizacion = Document(
-        "\$set", Document()
+        val actualizacion = Document(
+            "\$set", Document()
+                .append("nombre", jugador.nombre)
+                .append("fecha_nacimiento", jugador.fechaNacimiento)
+                .append("posicion", jugador.posicion)
+                .append("id_equipo", jugador.idEquipo)
+        )
+
+        val result = coleccionJugadores.updateOne(filtro, actualizacion)
+
+        if (result.modifiedCount > 0) {
+            println("Jugador con ID ${jugador.id} actualizado correctamente (${result.modifiedCount} documento modificado).")
+        } else {
+            println("No se modificó el jugador con ID ${jugador.id}. Puede que el ID no exista o los datos fueran los mismos.")
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
+    }
+
+}
+
+fun insertarJugador(jugador: Jugador) {
+    try {
+        val doc = Document("id_jugador", jugador.id)
             .append("nombre", jugador.nombre)
             .append("fecha_nacimiento", jugador.fechaNacimiento)
             .append("posicion", jugador.posicion)
             .append("id_equipo", jugador.idEquipo)
-    )
 
-    val result = coleccionJugadores.updateOne(filtro, actualizacion)
-
-    if (result.modifiedCount > 0) {
-        println("Jugador con ID ${jugador.id} actualizado correctamente (${result.modifiedCount} documento modificado).")
-    } else {
-        println("No se modificó el jugador con ID ${jugador.id}. Puede que el ID no exista o los datos fueran los mismos.")
+        coleccionJugadores.insertOne(doc)
+        println("Jugador insertado con ID: ${doc.getObjectId("_id")}")
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
-
-    //cliente.close()
-    //println("Conexión cerrada.")
-}
-
-fun insertarJugador(jugador: Jugador) {
-    val doc = Document("id_jugador", jugador.id)
-        .append("nombre", jugador.nombre)
-        .append("fecha_nacimiento", jugador.fechaNacimiento)
-        .append("posicion", jugador.posicion)
-        .append("id_equipo", jugador.idEquipo)
-
-    coleccionJugadores.insertOne(doc)
-    println("Jugador insertado con ID: ${doc.getObjectId("_id")}")
-
-    //cliente.close()
-    println("Conexión cerrada")
 }
 
 fun eliminarJugador() {
-    var id: Int? = null
-    while (id == null) {
-        print("ID del jugador a eliminar: ")
-        val entrada = scanner.nextLine()
-        id = entrada.toIntOrNull()
-        if (id == null) {
-            println("El ID debe ser un número !!!")
+    try {
+        var id: Int? = null
+        while (id == null) {
+            print("ID del jugador a eliminar: ")
+            val entrada = scanner.nextLine()
+            id = entrada.toIntOrNull()
+            if (id == null) {
+                println("El ID debe ser un número !!!")
+            }
         }
+
+        val result = coleccionEquipos.deleteOne(Filters.eq("id_jugador", id))
+        if (result.deletedCount > 0)
+            println("Jugador eliminado correctamente.")
+        else
+            println("No se encontró ningun jugador con ese nombre.")
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
-
-    val result = coleccionEquipos.deleteOne(Filters.eq("id_jugador", id))
-    if (result.deletedCount > 0)
-        println("Jugador eliminado correctamente.")
-    else
-        println("No se encontró ningun jugador con ese nombre.")
-
-    //cliente.close()
-    //println("Conexión cerrada.")
 }
 
 //LIGA
@@ -763,89 +787,96 @@ fun crudLiga() {
 }
 
 fun getLigas() {
-    coleccionLigas.find().forEach { doc ->
-        val id = doc.getInteger("id_liga")
-        val nombre = doc.getString("nombre")
-        val pais = doc.getString("pais")
-        val division = doc.getString("division")
-        println("id: ${id} - nombre: ${nombre} - pais: ${pais} - division: ${division}")
+    try {
+        coleccionLigas.find().forEach { doc ->
+            val id = doc.getInteger("id_liga")
+            val nombre = doc.getString("nombre")
+            val pais = doc.getString("pais")
+            val division = doc.getString("division")
+            println("id: ${id} - nombre: ${nombre} - pais: ${pais} - division: ${division}")
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
 }
 
 fun getLigaPorId(idLiga: Int): Liga? {
+    return try {
+        val doc = coleccionLigas.find(Filters.eq("id_liga", idLiga)).first()
 
-    val filtro = Filters.eq("id_liga", idLiga)
+        if (doc != null) {
+            Liga(
+                doc.getInteger("id_liga"),
+                doc.getString("nombre"),
+                doc.getString("pais"),
+                doc.getString("division")
+            )
+        } else null
 
-    val doc = coleccionLigas.find(filtro).first()
-
-    //cliente.close()
-
-    return if (doc != null) {
-        val id = doc.getInteger("id_liga")
-        val nombre = doc.getString("nombre")
-        val pais = doc.getString("pais")
-        val division = doc.getString("division")
-
-        Liga(id, nombre, pais, division)
-    } else {
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
         null
     }
 }
 
 fun insertarLiga(liga: Liga) {
-    val doc = Document("id_liga", liga.id)
-        .append("nombre", liga.nombre)
-        .append("pais", liga.pais)
-        .append("division", liga.division)
-
-    coleccionLigas.insertOne(doc)
-    println("Liga insertada con ID: ${doc.getObjectId("_id")}")
-
-    //cliente.close()
-    println("Conexión cerrada")
-}
-
-fun actualizarLiga(liga: Liga) {
-    val filtro = Filters.eq("id_liga", liga.id)
-
-    val actualizacion = Document(
-        "\$set", Document()
+    try {
+        val doc = Document("id_liga", liga.id)
             .append("nombre", liga.nombre)
             .append("pais", liga.pais)
             .append("division", liga.division)
-    )
 
-    val result = coleccionLigas.updateOne(filtro, actualizacion)
-
-    if (result.modifiedCount > 0) {
-        println("Liga con ID ${liga.id} actualiza correctamente (${result.modifiedCount} documento modificado).")
-    } else {
-        println("No se modificó la liga con ID ${liga.id}. Puede que el ID no exista o los datos fueran los mismos.")
+        coleccionLigas.insertOne(doc)
+        println("Liga insertada con ID: ${doc.getObjectId("_id")}")
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
+}
 
-    //cliente.close()
-    //println("Conexión cerrada.")
+fun actualizarLiga(liga: Liga) {
+    try {
+        val filtro = Filters.eq("id_liga", liga.id)
+
+        val actualizacion = Document(
+            "\$set", Document()
+                .append("nombre", liga.nombre)
+                .append("pais", liga.pais)
+                .append("division", liga.division)
+        )
+
+        val result = coleccionLigas.updateOne(filtro, actualizacion)
+
+        if (result.modifiedCount > 0) {
+            println("Liga con ID ${liga.id} actualiza correctamente (${result.modifiedCount} documento modificado).")
+        } else {
+            println("No se modificó la liga con ID ${liga.id}. Puede que el ID no exista o los datos fueran los mismos.")
+        }
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
+    }
 }
 
 fun eliminarLiga() {
-    var id: Int? = null
-    while (id == null) {
-        print("ID de la liga a eliminar: ")
-        val entrada = scanner.nextLine()
-        id = entrada.toIntOrNull()
-        if (id == null) {
-            println("El ID debe ser un número !!!")
+    try {
+        var id: Int? = null
+        while (id == null) {
+            print("ID de la liga a eliminar: ")
+            val entrada = scanner.nextLine()
+            id = entrada.toIntOrNull()
+            if (id == null) {
+                println("El ID debe ser un número !!!")
+            }
         }
+
+        val result = coleccionLigas.deleteOne(Filters.eq("id_liga", id))
+        if (result.deletedCount > 0)
+            println("Liga eliminada correctamente.")
+        else
+            println("No se encontró ninguna liga con ese nombre.")
+
+    } catch (e: Exception) {
+        println("Ha ocurrido un error en la consulta")
     }
-
-    val result = coleccionLigas.deleteOne(Filters.eq("id_liga", id))
-    if (result.deletedCount > 0)
-        println("Liga eliminada correctamente.")
-    else
-        println("No se encontró ninguna liga con ese nombre.")
-
-    //cliente.close()
-    //println("Conexión cerrada.")
 }
 
 //Joins
