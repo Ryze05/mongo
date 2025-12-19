@@ -133,6 +133,7 @@ fun crudEquipo() {
                 "Equipos con mas titulos que",
                 "Nombre y titulos de los equipos",
                 "Media de titulos",
+                "Mostrar clubes por valor de mercado",
                 "Exportar coleccion",
                 "Importar coleccion",
                 "Salir"
@@ -269,19 +270,21 @@ fun crudEquipo() {
                 println("La media de titulos es: ${calcularMediaTitulos()}")
             }
 
-            "9" -> {
+            "9" -> mostrarClubesPorValorMercado()
+
+            "10" -> {
                 exportarBD(coleccionEquipos, "src/main/resources/equipos.json")
             }
 
-            "10" -> {
+            "11" -> {
                 importarBD("src/main/resources/equipos.json", coleccionEquipos)
             }
 
-            "11" -> {
+            "12" -> {
                 println("Saliendo...")
             }
         }
-    } while (option != "11")
+    } while (option != "12")
 }
 
 fun getEquipos() {
